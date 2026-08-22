@@ -2,6 +2,15 @@ spring:
   application:
     name: opensource
 
+  ai:
+    mcp:
+      server:
+        name: companyx-mcp-server
+        version: 0.1.0
+        protocol: STREAMABLE
+        annotation-scanner:
+          enabled: true
+
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:companyx}
     username: ${DB_USERNAME:companyx}
