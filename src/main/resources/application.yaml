@@ -1,3 +1,9 @@
 spring:
   application:
     name: opensource
+
+server:
+  port: ${SERVER_PORT:8080}
+
+app:
+  dataset-root: ${DATASET_ROOT:}
