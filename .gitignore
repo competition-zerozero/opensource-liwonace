@@ -38,3 +38,7 @@ out/
 
 .DS_Store
 .env
+
+# Local dataset files
+/dataset/
+/companyx-dataset-v1.0/
