@@ -1,0 +1,54 @@
+name: Auto Assign
+
+on:
+  issues:
+    types:
+      - opened
+  pull_request_target:
+    types:
+      - opened
+      - ready_for_review
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  assign-author:
+    name: Assign author
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Assign issue author
+        if: github.event_name == 'issues'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const issue = context.payload.issue;
+            try {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                assignees: [issue.user.login],
+              });
+            } catch (error) {
+              core.warning(`Could not assign ${issue.user.login}: ${error.message}`);
+            }
+
+      - name: Assign pull request author
+        if: github.event_name == 'pull_request_target'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pull = context.payload.pull_request;
+            try {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pull.number,
+                assignees: [pull.user.login],
+              });
+            } catch (error) {
+              core.warning(`Could not assign ${pull.user.login}: ${error.message}`);
+            }
