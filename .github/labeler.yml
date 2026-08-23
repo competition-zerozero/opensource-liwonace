@@ -1,0 +1,52 @@
+✅ test:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/test/**
+
+✨feature:
+  - head-branch:
+      - '^feat/'
+      - '^feature/'
+
+🐞 bugfix:
+  - head-branch:
+      - '^fix/'
+      - '^bugfix/'
+
+🔨 refactor:
+  - head-branch:
+      - '^refactor/'
+
+🌏 deploy:
+  - changed-files:
+      - any-glob-to-any-file:
+          - Dockerfile
+          - docker-compose.yml
+          - deploy/**
+          - infra/**
+  - head-branch:
+      - '^deploy/'
+
+🚀 release:
+  - head-branch:
+      - '^release/'
+
+🧹 chore:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/workflows/**
+          - build.gradle
+          - settings.gradle
+          - gradle/**
+          - gradlew
+          - gradlew.bat
+  - head-branch:
+      - '^chore/'
+
+📃 docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - README.md
+          - docs/**
+  - head-branch:
+      - '^docs/'
