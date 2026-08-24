@@ -46,7 +46,8 @@ public class DocumentChunkRepository {
     return chunks.size();
   }
 
-  public List<DocumentSearchResult> searchSimilar(List<Double> queryEmbedding, int limit) {
+  public List<DocumentSearchResult> searchSimilar(
+      List<Double> queryEmbedding, int limit, double minSimilarity) {
     return jdbcTemplate.query(
         """
         SELECT doc_id,
@@ -56,6 +57,7 @@ public class DocumentChunkRepository {
                1 - (embedding <=> ?::vector) AS similarity
         FROM document_chunks
         WHERE embedding IS NOT NULL
+          AND 1 - (embedding <=> ?::vector) >= ?
         ORDER BY embedding <=> ?::vector
         LIMIT ?
         """,
@@ -67,6 +69,8 @@ public class DocumentChunkRepository {
                 resultSet.getString("metadata"),
                 resultSet.getDouble("similarity")),
         vectorLiteral(queryEmbedding),
+        vectorLiteral(queryEmbedding),
+        minSimilarity,
         vectorLiteral(queryEmbedding),
         limit);
   }

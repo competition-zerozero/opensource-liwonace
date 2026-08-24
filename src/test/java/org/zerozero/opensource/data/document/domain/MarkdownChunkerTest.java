@@ -7,7 +7,8 @@ import org.zerozero.opensource.config.DocumentProperties;
 
 class MarkdownChunkerTest {
 
-  private final MarkdownChunker chunker = new MarkdownChunker(new DocumentProperties(100));
+  private final MarkdownChunker chunker =
+      new MarkdownChunker(new DocumentProperties(100, 5, 20, 0.0));
 
   @Test
   void headingSectionsAreSplitIntoChunks() {

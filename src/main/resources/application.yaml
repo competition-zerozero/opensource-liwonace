@@ -15,6 +15,9 @@ app:
   dataset-root: ${DATASET_ROOT:}
   documents:
     max-chunk-chars: ${DOCUMENT_CHUNK_MAX_CHARS:2000}
+    default-search-limit: ${DOCUMENT_DEFAULT_SEARCH_LIMIT:5}
+    max-search-limit: ${DOCUMENT_MAX_SEARCH_LIMIT:20}
+    min-similarity: ${DOCUMENT_MIN_SIMILARITY:0.0}
   ollama:
     base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
     embedding-model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}

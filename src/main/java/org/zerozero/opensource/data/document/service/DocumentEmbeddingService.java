@@ -8,6 +8,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.zerozero.opensource.config.DatasetProperties;
+import org.zerozero.opensource.config.DocumentProperties;
 import org.zerozero.opensource.data.document.domain.DocumentMetadata;
 import org.zerozero.opensource.data.document.domain.MarkdownChunker;
 import org.zerozero.opensource.data.document.dto.DocumentSearchResult;
@@ -22,6 +23,7 @@ import tools.jackson.databind.ObjectMapper;
 public class DocumentEmbeddingService {
 
   private final DatasetProperties datasetProperties;
+  private final DocumentProperties documentProperties;
   private final ObjectMapper objectMapper;
   private final MarkdownChunker chunker;
   private final OllamaEmbeddingClient embeddingClient;
@@ -53,9 +55,18 @@ public class DocumentEmbeddingService {
       throw new IllegalArgumentException("검색어를 입력해야 합니다.");
     }
 
-    int limit = Math.clamp(request.limit() == null ? 5 : request.limit(), 1, 20);
+    int maxLimit = Math.max(1, documentProperties.maxSearchLimit());
+    int defaultLimit = Math.clamp(documentProperties.defaultSearchLimit(), 1, maxLimit);
+    int limit = Math.clamp(request.limit() == null ? defaultLimit : request.limit(), 1, maxLimit);
+    double minSimilarity =
+        Math.clamp(
+            request.minSimilarity() == null
+                ? documentProperties.minSimilarity()
+                : request.minSimilarity(),
+            0.0,
+            1.0);
     List<Double> queryEmbedding = embeddingClient.embed(request.query());
-    return new SearchResult(repository.searchSimilar(queryEmbedding, limit));
+    return new SearchResult(repository.searchSimilar(queryEmbedding, limit, minSimilarity));
   }
 
   private Path datasetRoot() {
@@ -83,7 +94,7 @@ public class DocumentEmbeddingService {
 
   public record ImportResult(int documentCount, int chunkCount) {}
 
-  public record SearchRequest(String query, Integer limit) {}
+  public record SearchRequest(String query, Integer limit, Double minSimilarity) {}
 
   public record SearchResult(List<DocumentSearchResult> results) {}
 }
