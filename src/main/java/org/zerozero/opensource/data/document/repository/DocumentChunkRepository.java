@@ -1,5 +1,6 @@
 package org.zerozero.opensource.data.document.repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -47,20 +48,43 @@ public class DocumentChunkRepository {
   }
 
   public List<DocumentSearchResult> searchSimilar(
-      List<Double> queryEmbedding, int limit, double minSimilarity) {
+      List<Double> queryEmbedding,
+      int limit,
+      double minSimilarity,
+      String documentType,
+      String productName) {
+    StringBuilder sql =
+        new StringBuilder(
+            """
+            SELECT doc_id,
+                   chunk_index,
+                   content,
+                   metadata::text AS metadata,
+                   1 - (embedding <=> ?::vector) AS similarity
+            FROM document_chunks
+            WHERE embedding IS NOT NULL
+              AND 1 - (embedding <=> ?::vector) >= ?
+            """);
+    List<Object> params = new ArrayList<>();
+    params.add(vectorLiteral(queryEmbedding));
+    params.add(vectorLiteral(queryEmbedding));
+    params.add(minSimilarity);
+
+    if (documentType != null) {
+      sql.append(" AND metadata ->> 'documentType' = ?");
+      params.add(documentType);
+    }
+    if (productName != null) {
+      sql.append(" AND metadata ->> 'title' ILIKE ?");
+      params.add("%" + productName + "%");
+    }
+
+    sql.append(" ORDER BY embedding <=> ?::vector LIMIT ?");
+    params.add(vectorLiteral(queryEmbedding));
+    params.add(limit);
+
     return jdbcTemplate.query(
-        """
-        SELECT doc_id,
-               chunk_index,
-               content,
-               metadata::text AS metadata,
-               1 - (embedding <=> ?::vector) AS similarity
-        FROM document_chunks
-        WHERE embedding IS NOT NULL
-          AND 1 - (embedding <=> ?::vector) >= ?
-        ORDER BY embedding <=> ?::vector
-        LIMIT ?
-        """,
+        sql.toString(),
         (resultSet, rowNumber) ->
             new DocumentSearchResult(
                 resultSet.getString("doc_id"),
@@ -68,11 +92,7 @@ public class DocumentChunkRepository {
                 resultSet.getString("content"),
                 resultSet.getString("metadata"),
                 resultSet.getDouble("similarity")),
-        vectorLiteral(queryEmbedding),
-        vectorLiteral(queryEmbedding),
-        minSimilarity,
-        vectorLiteral(queryEmbedding),
-        limit);
+        params.toArray());
   }
 
   private String metadataJson(DocumentMetadata metadata) {

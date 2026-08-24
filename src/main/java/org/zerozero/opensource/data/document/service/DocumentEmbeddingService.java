@@ -66,7 +66,13 @@ public class DocumentEmbeddingService {
             0.0,
             1.0);
     List<Double> queryEmbedding = embeddingClient.embed(request.query());
-    return new SearchResult(repository.searchSimilar(queryEmbedding, limit, minSimilarity));
+    return new SearchResult(
+        repository.searchSimilar(
+            queryEmbedding,
+            limit,
+            minSimilarity,
+            blankToNull(request.documentType()),
+            blankToNull(request.productName())));
   }
 
   private Path datasetRoot() {
@@ -92,9 +98,14 @@ public class DocumentEmbeddingService {
     }
   }
 
+  private String blankToNull(String value) {
+    return value == null || value.isBlank() ? null : value.trim();
+  }
+
   public record ImportResult(int documentCount, int chunkCount) {}
 
-  public record SearchRequest(String query, Integer limit, Double minSimilarity) {}
+  public record SearchRequest(
+      String query, Integer limit, Double minSimilarity, String documentType, String productName) {}
 
   public record SearchResult(List<DocumentSearchResult> results) {}
 }
