@@ -28,6 +28,10 @@ public class GraphImportService {
     return new ImportResult(count.nodeCount(), count.edgeCount());
   }
 
+  public List<GraphNode> searchNodes(String name, String type) {
+    return graphRepository.searchNodes(blankToNull(name), blankToNull(type));
+  }
+
   private Path datasetRoot() {
     if (datasetProperties.datasetRoot() == null || datasetProperties.datasetRoot().isBlank()) {
       throw new IllegalStateException("DATASET_ROOT 환경변수가 설정되지 않았습니다.");
@@ -41,6 +45,10 @@ public class GraphImportService {
     } catch (JacksonException exception) {
       throw new IllegalStateException("그래프 JSON을 읽지 못했습니다: " + path, exception);
     }
+  }
+
+  private String blankToNull(String value) {
+    return value == null || value.isBlank() ? null : value.trim();
   }
 
   public record ImportResult(int nodeCount, int edgeCount) {}

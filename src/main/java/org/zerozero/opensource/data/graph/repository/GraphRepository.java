@@ -1,5 +1,6 @@
 package org.zerozero.opensource.data.graph.repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -50,11 +51,51 @@ public class GraphRepository {
     return new ImportCount(nodes.size(), edges.size());
   }
 
+  public List<GraphNode> searchNodes(String name, String type) {
+    StringBuilder sql =
+        new StringBuilder(
+            """
+            SELECT id, type, name, properties
+            FROM graph_nodes
+            WHERE 1 = 1
+            """);
+    List<Object> params = new ArrayList<>();
+
+    if (name != null) {
+      sql.append(" AND name ILIKE ?");
+      params.add("%" + name + "%");
+    }
+    if (type != null) {
+      sql.append(" AND type = ?");
+      params.add(type);
+    }
+
+    sql.append(" ORDER BY type, name LIMIT 20");
+
+    return jdbcTemplate.query(
+        sql.toString(),
+        (resultSet, rowNumber) ->
+            new GraphNode(
+                resultSet.getString("id"),
+                resultSet.getString("type"),
+                resultSet.getString("name"),
+                readProperties(resultSet.getString("properties"))),
+        params.toArray());
+  }
+
   private String json(Map<String, Object> value) {
     try {
       return objectMapper.writeValueAsString(value == null ? Map.of() : value);
     } catch (JacksonException exception) {
       throw new IllegalStateException("그래프 속성을 JSON으로 변환하지 못했습니다.", exception);
+    }
+  }
+
+  private Map<String, Object> readProperties(String value) {
+    try {
+      return objectMapper.readValue(value, new tools.jackson.core.type.TypeReference<>() {});
+    } catch (JacksonException exception) {
+      throw new IllegalStateException("그래프 속성을 읽지 못했습니다.", exception);
     }
   }
 
