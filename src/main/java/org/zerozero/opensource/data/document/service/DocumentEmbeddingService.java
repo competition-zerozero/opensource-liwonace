@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.zerozero.opensource.config.DatasetProperties;
 import org.zerozero.opensource.data.document.domain.DocumentMetadata;
 import org.zerozero.opensource.data.document.domain.MarkdownChunker;
+import org.zerozero.opensource.data.document.dto.DocumentSearchResult;
 import org.zerozero.opensource.data.document.repository.DocumentChunkRepository;
 import org.zerozero.opensource.data.document.repository.OllamaEmbeddingClient;
 import tools.jackson.core.JacksonException;
@@ -47,6 +48,16 @@ public class DocumentEmbeddingService {
     return new ImportResult(documents.size(), chunkCount);
   }
 
+  public SearchResult search(SearchRequest request) {
+    if (request == null || request.query() == null || request.query().isBlank()) {
+      throw new IllegalArgumentException("검색어를 입력해야 합니다.");
+    }
+
+    int limit = Math.clamp(request.limit() == null ? 5 : request.limit(), 1, 20);
+    List<Double> queryEmbedding = embeddingClient.embed(request.query());
+    return new SearchResult(repository.searchSimilar(queryEmbedding, limit));
+  }
+
   private Path datasetRoot() {
     if (datasetProperties.datasetRoot() == null || datasetProperties.datasetRoot().isBlank()) {
       throw new IllegalStateException("DATASET_ROOT 환경변수가 설정되지 않았습니다.");
@@ -71,4 +82,8 @@ public class DocumentEmbeddingService {
   }
 
   public record ImportResult(int documentCount, int chunkCount) {}
+
+  public record SearchRequest(String query, Integer limit) {}
+
+  public record SearchResult(List<DocumentSearchResult> results) {}
 }

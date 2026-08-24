@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.zerozero.opensource.data.document.domain.DocumentMetadata;
 import org.zerozero.opensource.data.document.domain.MarkdownChunker;
+import org.zerozero.opensource.data.document.dto.DocumentSearchResult;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -43,6 +44,31 @@ public class DocumentChunkRepository {
           metadataJson);
     }
     return chunks.size();
+  }
+
+  public List<DocumentSearchResult> searchSimilar(List<Double> queryEmbedding, int limit) {
+    return jdbcTemplate.query(
+        """
+        SELECT doc_id,
+               chunk_index,
+               content,
+               metadata::text AS metadata,
+               1 - (embedding <=> ?::vector) AS similarity
+        FROM document_chunks
+        WHERE embedding IS NOT NULL
+        ORDER BY embedding <=> ?::vector
+        LIMIT ?
+        """,
+        (resultSet, rowNumber) ->
+            new DocumentSearchResult(
+                resultSet.getString("doc_id"),
+                resultSet.getInt("chunk_index"),
+                resultSet.getString("content"),
+                resultSet.getString("metadata"),
+                resultSet.getDouble("similarity")),
+        vectorLiteral(queryEmbedding),
+        vectorLiteral(queryEmbedding),
+        limit);
   }
 
   private String metadataJson(DocumentMetadata metadata) {
