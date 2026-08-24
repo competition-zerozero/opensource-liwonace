@@ -19,10 +19,12 @@ docker compose exec -T postgres psql \
       UNION ALL SELECT 'sales', COUNT(*) FROM sales
       UNION ALL SELECT 'support_tickets', COUNT(*) FROM support_tickets
       UNION ALL SELECT 'document_chunks', COUNT(*) FROM document_chunks
+      UNION ALL SELECT 'graph_nodes', COUNT(*) FROM graph_nodes
+      UNION ALL SELECT 'graph_edges', COUNT(*) FROM graph_edges
       ORDER BY table_name;" \
   -c "SELECT conname AS constraint_name,
              conrelid::regclass AS table_name,
              confrelid::regclass AS referenced_table
       FROM pg_constraint
       WHERE contype = 'f'
-      ORDER BY table_name::text, constraint_name;"
+      ORDER BY conrelid::regclass::text, conname;"
