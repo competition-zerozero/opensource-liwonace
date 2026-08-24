@@ -2,8 +2,20 @@ spring:
   application:
     name: opensource
 
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:companyx}
+    username: ${DB_USERNAME:companyx}
+    password: ${DB_PASSWORD:companyx}
+    driver-class-name: org.postgresql.Driver
+
 server:
   port: ${SERVER_PORT:8080}
 
 app:
   dataset-root: ${DATASET_ROOT:}
+  documents:
+    max-chunk-chars: ${DOCUMENT_CHUNK_MAX_CHARS:2000}
+  ollama:
+    base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    embedding-model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
+    embedding-dimension: ${OLLAMA_EMBEDDING_DIMENSION:768}
