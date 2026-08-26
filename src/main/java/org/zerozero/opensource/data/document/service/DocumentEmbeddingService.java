@@ -8,8 +8,10 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.zerozero.opensource.config.DatasetProperties;
+import org.zerozero.opensource.config.DocumentProperties;
 import org.zerozero.opensource.data.document.domain.DocumentMetadata;
 import org.zerozero.opensource.data.document.domain.MarkdownChunker;
+import org.zerozero.opensource.data.document.dto.DocumentSearchResult;
 import org.zerozero.opensource.data.document.repository.DocumentChunkRepository;
 import org.zerozero.opensource.data.document.repository.OllamaEmbeddingClient;
 import tools.jackson.core.JacksonException;
@@ -21,6 +23,7 @@ import tools.jackson.databind.ObjectMapper;
 public class DocumentEmbeddingService {
 
   private final DatasetProperties datasetProperties;
+  private final DocumentProperties documentProperties;
   private final ObjectMapper objectMapper;
   private final MarkdownChunker chunker;
   private final OllamaEmbeddingClient embeddingClient;
@@ -47,6 +50,31 @@ public class DocumentEmbeddingService {
     return new ImportResult(documents.size(), chunkCount);
   }
 
+  public SearchResult search(SearchRequest request) {
+    if (request == null || request.query() == null || request.query().isBlank()) {
+      throw new IllegalArgumentException("검색어를 입력해야 합니다.");
+    }
+
+    int maxLimit = Math.max(1, documentProperties.maxSearchLimit());
+    int defaultLimit = Math.clamp(documentProperties.defaultSearchLimit(), 1, maxLimit);
+    int limit = Math.clamp(request.limit() == null ? defaultLimit : request.limit(), 1, maxLimit);
+    double minSimilarity =
+        Math.clamp(
+            request.minSimilarity() == null
+                ? documentProperties.minSimilarity()
+                : request.minSimilarity(),
+            0.0,
+            1.0);
+    List<Double> queryEmbedding = embeddingClient.embed(request.query());
+    return new SearchResult(
+        repository.searchSimilar(
+            queryEmbedding,
+            limit,
+            minSimilarity,
+            blankToNull(request.documentType()),
+            blankToNull(request.productName())));
+  }
+
   private Path datasetRoot() {
     if (datasetProperties.datasetRoot() == null || datasetProperties.datasetRoot().isBlank()) {
       throw new IllegalStateException("DATASET_ROOT 환경변수가 설정되지 않았습니다.");
@@ -70,5 +98,14 @@ public class DocumentEmbeddingService {
     }
   }
 
+  private String blankToNull(String value) {
+    return value == null || value.isBlank() ? null : value.trim();
+  }
+
   public record ImportResult(int documentCount, int chunkCount) {}
+
+  public record SearchRequest(
+      String query, Integer limit, Double minSimilarity, String documentType, String productName) {}
+
+  public record SearchResult(List<DocumentSearchResult> results) {}
 }

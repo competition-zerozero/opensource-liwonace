@@ -9,6 +9,7 @@ db_username="${DB_USERNAME:-companyx}"
 
 schema_file="${DATASET_ROOT}/sql/01-schema.sql"
 data_file="${DATASET_ROOT}/sql/02-data.sql"
+graph_schema_file="scripts/03-graph-schema.sql"
 
 if [[ ! -f "${schema_file}" || ! -f "${data_file}" ]]; then
   echo "데이터셋 SQL 파일을 찾을 수 없습니다: ${DATASET_ROOT}/sql" >&2
@@ -42,5 +43,11 @@ docker compose exec -T postgres psql \
   -U "${db_username}" \
   -d "${db_name}" \
   -f - < "${data_file}"
+
+docker compose exec -T postgres psql \
+  -v ON_ERROR_STOP=1 \
+  -U "${db_username}" \
+  -d "${db_name}" \
+  -f - < "${graph_schema_file}"
 
 echo "Company-X 데이터베이스 초기화와 데이터 적재가 완료되었습니다."
