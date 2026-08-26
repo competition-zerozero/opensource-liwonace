@@ -5,7 +5,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app.ollama")
 public record OllamaProperties(
         String baseUrl,
-        String embeddingModel
+        String embeddingModel,
+        String chatModel
 ) {
     public OllamaProperties {
         if (baseUrl == null || baseUrl.isBlank()) {
@@ -13,6 +14,9 @@ public record OllamaProperties(
         }
         if (embeddingModel == null || embeddingModel.isBlank()) {
             embeddingModel = "nomic-embed-text";
+        }
+        if (chatModel == null || chatModel.isBlank()) {
+            chatModel = "gemma3:latest";
         }
     }
 }
