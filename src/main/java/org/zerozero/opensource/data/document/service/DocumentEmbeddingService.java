@@ -107,5 +107,10 @@ public class DocumentEmbeddingService {
   public record SearchRequest(
       String query, Integer limit, Double minSimilarity, String documentType, String productName) {}
 
-  public record SearchResult(List<DocumentSearchResult> results) {}
+  public record SearchResult(List<DocumentSearchResult> results, int resultCount, boolean empty) {
+
+    public SearchResult(List<DocumentSearchResult> results) {
+      this(results, results.size(), results.isEmpty());
+    }
+  }
 }

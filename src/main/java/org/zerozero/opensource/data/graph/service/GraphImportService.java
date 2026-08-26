@@ -32,11 +32,11 @@ public class GraphImportService {
     return new ImportResult(count.nodeCount(), count.edgeCount());
   }
 
-  public List<GraphNode> searchNodes(String name, String type) {
-    return graphRepository.searchNodes(blankToNull(name), blankToNull(type));
+  public NodeSearchResult searchNodes(String name, String type) {
+    return new NodeSearchResult(graphRepository.searchNodes(blankToNull(name), blankToNull(type)));
   }
 
-  public List<GraphRelationResult> searchRelations(
+  public RelationSearchResult searchRelations(
       String nodeId, int depth, String direction, String relation) {
     if (nodeId == null || nodeId.isBlank()) {
       throw new IllegalArgumentException("nodeId를 입력해야 합니다.");
@@ -61,7 +61,7 @@ public class GraphImportService {
       }
     }
 
-    return new ArrayList<>(results.values());
+    return new RelationSearchResult(new ArrayList<>(results.values()));
   }
 
   private Path datasetRoot() {
@@ -121,4 +121,19 @@ public class GraphImportService {
   }
 
   public record ImportResult(int nodeCount, int edgeCount) {}
+
+  public record NodeSearchResult(List<GraphNode> results, int resultCount, boolean empty) {
+
+    public NodeSearchResult(List<GraphNode> results) {
+      this(results, results.size(), results.isEmpty());
+    }
+  }
+
+  public record RelationSearchResult(
+      List<GraphRelationResult> results, int resultCount, boolean empty) {
+
+    public RelationSearchResult(List<GraphRelationResult> results) {
+      this(results, results.size(), results.isEmpty());
+    }
+  }
 }
