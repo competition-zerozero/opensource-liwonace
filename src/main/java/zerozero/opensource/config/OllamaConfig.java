@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
 
 @Configuration
-@EnableConfigurationProperties({OllamaProperties.class, DocumentIngestionProperties.class})
+@EnableConfigurationProperties({OllamaProperties.class, DocumentIngestionProperties.class, GraphIngestionProperties.class})
 public class OllamaConfig {
 
     @Bean
