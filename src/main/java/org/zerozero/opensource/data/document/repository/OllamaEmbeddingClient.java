@@ -1,7 +1,10 @@
 package org.zerozero.opensource.data.document.repository;
 
+import java.time.Duration;
 import java.util.List;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 import org.zerozero.opensource.config.OllamaProperties;
@@ -13,7 +16,12 @@ public class OllamaEmbeddingClient {
   private final OllamaProperties properties;
 
   public OllamaEmbeddingClient(OllamaProperties properties) {
-    this.restClient = RestClient.builder().baseUrl(properties.baseUrl()).build();
+    SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+    requestFactory.setConnectTimeout(
+        Duration.ofSeconds(Math.max(1, properties.connectTimeoutSeconds())));
+    requestFactory.setReadTimeout(Duration.ofSeconds(Math.max(1, properties.readTimeoutSeconds())));
+    this.restClient =
+        RestClient.builder().baseUrl(properties.baseUrl()).requestFactory(requestFactory).build();
     this.properties = properties;
   }
 
@@ -40,6 +48,8 @@ public class OllamaEmbeddingClient {
     } catch (RestClientResponseException exception) {
       throw new IllegalStateException(
           "Ollama 임베딩 요청에 실패했습니다. status=" + exception.getStatusCode(), exception);
+    } catch (ResourceAccessException exception) {
+      throw new IllegalStateException("Ollama 임베딩 요청이 지연되었거나 연결에 실패했습니다.", exception);
     }
   }
 

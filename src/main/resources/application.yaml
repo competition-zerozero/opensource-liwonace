@@ -22,3 +22,5 @@ app:
     base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
     embedding-model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
     embedding-dimension: ${OLLAMA_EMBEDDING_DIMENSION:768}
+    connect-timeout-seconds: ${OLLAMA_CONNECT_TIMEOUT_SECONDS:3}
+    read-timeout-seconds: ${OLLAMA_READ_TIMEOUT_SECONDS:30}
