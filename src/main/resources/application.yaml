@@ -2,6 +2,15 @@ spring:
   application:
     name: opensource
 
+  ai:
+    mcp:
+      server:
+        name: companyx-mcp-server
+        version: 0.1.0
+        protocol: STREAMABLE
+        annotation-scanner:
+          enabled: true
+
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:companyx}
     username: ${DB_USERNAME:companyx}
@@ -13,6 +22,13 @@ server:
 
 app:
   dataset-root: ${DATASET_ROOT:}
+  ingest:
+    documents:
+      enabled: ${INGEST_DOCUMENTS:false}
+      path: ${DOCUMENTS_PATH:/Users/seoyeong/Desktop/companyx-dataset-v1.0/documents}
+    graph:
+      enabled: ${INGEST_GRAPH:false}
+      path: ${GRAPH_PATH:/Users/seoyeong/Desktop/companyx-dataset-v1.0/graph}
   documents:
     max-chunk-chars: ${DOCUMENT_CHUNK_MAX_CHARS:2000}
     default-search-limit: ${DOCUMENT_DEFAULT_SEARCH_LIMIT:5}
@@ -21,6 +37,7 @@ app:
   ollama:
     base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
     embedding-model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
+    chat-model: ${OLLAMA_CHAT_MODEL:gemma3:latest}
     embedding-dimension: ${OLLAMA_EMBEDDING_DIMENSION:768}
     connect-timeout-seconds: ${OLLAMA_CONNECT_TIMEOUT_SECONDS:3}
     read-timeout-seconds: ${OLLAMA_READ_TIMEOUT_SECONDS:30}
