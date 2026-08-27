@@ -23,6 +23,10 @@ server:
 app:
   cli:
     enabled: ${APP_CLI_ENABLED:false}
+  evaluation:
+    enabled: ${APP_EVALUATION_ENABLED:false}
+    questions-path: ${APP_EVALUATION_QUESTIONS_PATH:}
+    output-path: ${APP_EVALUATION_OUTPUT_PATH:build/reports/companyx-evaluation.md}
   dataset-root: ${DATASET_ROOT:}
   ingest:
     documents:
