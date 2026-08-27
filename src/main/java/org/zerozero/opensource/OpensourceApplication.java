@@ -4,8 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
-@SpringBootApplication(scanBasePackages = {"org.zerozero.opensource", "zerozero.opensource"})
-@ConfigurationPropertiesScan(basePackages = {"org.zerozero.opensource", "zerozero.opensource"})
+@SpringBootApplication
+@ConfigurationPropertiesScan
 public class OpensourceApplication {
 
   public static void main(String[] args) {

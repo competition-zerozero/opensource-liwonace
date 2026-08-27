@@ -4,10 +4,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import zerozero.opensource.dto.AgentAnswerResult;
-import zerozero.opensource.dto.SqlQueryResult;
-import zerozero.opensource.service.AgentQueryService;
-import zerozero.opensource.service.Nl2SqlService;
+import org.zerozero.opensource.dto.AgentAnswerResult;
+import org.zerozero.opensource.dto.SqlQueryResult;
+import org.zerozero.opensource.service.AgentQueryService;
+import org.zerozero.opensource.service.Nl2SqlService;
 
 @RestController
 @RequestMapping("/api")
