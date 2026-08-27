@@ -27,15 +27,19 @@ public class GraphSearchService {
                             WHERE lower(id) = lower(?)
                                OR lower(name) = lower(?)
                         ),
-                        seed AS (
-                            SELECT * FROM exact_seed
-                            UNION ALL
+                        fuzzy_seed AS (
                             SELECT id, type, name, properties, 0 AS level
                             FROM graph_nodes
-                            WHERE NOT EXISTS (SELECT 1 FROM exact_seed)
-                              AND (id ILIKE '%' || ? || '%'
-                               OR name ILIKE '%' || ? || '%')
+                            WHERE id ILIKE '%' || ? || '%'
+                               OR name ILIKE '%' || ? || '%'
+                               OR properties::text ILIKE '%' || ? || '%'
                             LIMIT 10
+                        ),
+                        seed AS (
+                            SELECT * FROM exact_seed
+                            UNION
+                            SELECT * FROM fuzzy_seed
+                            WHERE NOT EXISTS (SELECT 1 FROM exact_seed)
                         ),
                         walk AS (
                             SELECT * FROM seed
@@ -57,6 +61,7 @@ public class GraphSearchService {
                     rs.getString("type"),
                     rs.getString("name"),
                     rs.getString("properties")),
+            entity,
             entity,
             entity,
             entity,

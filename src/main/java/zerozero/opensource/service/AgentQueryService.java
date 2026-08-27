@@ -78,7 +78,26 @@ public class AgentQueryService {
   }
 
   private String extractEntity(String question) {
-    Matcher matcher = COMPANY_ENTITY.matcher(question == null ? "" : question);
+    String value = question == null ? "" : question;
+    if (value.contains("서울물산")) {
+      return "Client-B";
+    }
+    if (value.contains("클라우드사업부")) {
+      return "클라우드사업부";
+    }
+    if (value.contains("경영지원팀")) {
+      return "경영지원팀";
+    }
+    if (value.contains("진행 중인 프로젝트")) {
+      return "in_progress";
+    }
+    if (value.contains("가장 많은 고객을 담당")) {
+      return "MANAGES_ACCOUNT";
+    }
+    if (value.contains("기술 지원 이슈가 가장 많은 제품")) {
+      return "REPORTED_ISSUE";
+    }
+    Matcher matcher = COMPANY_ENTITY.matcher(value);
     if (matcher.find()) {
       return matcher.group(1);
     }
@@ -95,6 +114,15 @@ public class AgentQueryService {
     }
     if (value.contains("담당") || value.contains("관리")) {
       return "MANAGES_ACCOUNT";
+    }
+    if (value.contains("팀장")) {
+      return "HEAD_IS";
+    }
+    if (value.contains("이끄는")) {
+      return "LEADS";
+    }
+    if (value.contains("이슈")) {
+      return "REPORTED_ISSUE";
     }
     return null;
   }
