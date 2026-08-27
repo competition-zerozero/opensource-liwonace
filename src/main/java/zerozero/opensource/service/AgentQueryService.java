@@ -37,12 +37,33 @@ public class AgentQueryService {
   }
 
   public AgentAnswerResult ask(String question) {
+    long startedAt = System.currentTimeMillis();
     RouteDecision decision = routerService.route(question);
-    Object toolResult = callTool(question, decision.toolName());
-    String answer =
-        answerGenerationService.generate(question, decision.toolName(), toJson(toolResult));
-    return new AgentAnswerResult(
-        question, decision.toolName(), decision.reason(), toolResult, answer);
+    try {
+      Object toolResult = callTool(question, decision.toolName());
+      String answer =
+          answerGenerationService.generate(question, decision.toolName(), toJson(toolResult));
+      return new AgentAnswerResult(
+          question,
+          decision.toolName(),
+          decision.reason(),
+          toolResult,
+          answer,
+          true,
+          null,
+          elapsedMillis(startedAt));
+    } catch (RuntimeException exception) {
+      String answer = "질문을 처리하지 못했습니다. 원인: " + exception.getMessage();
+      return new AgentAnswerResult(
+          question,
+          decision.toolName(),
+          decision.reason(),
+          null,
+          answer,
+          false,
+          exception.getMessage(),
+          elapsedMillis(startedAt));
+    }
   }
 
   private Object callTool(String question, String toolName) {
@@ -92,5 +113,9 @@ public class AgentQueryService {
     } catch (JacksonException exception) {
       throw new IllegalStateException("도구 결과를 JSON으로 변환하지 못했습니다.", exception);
     }
+  }
+
+  private long elapsedMillis(long startedAt) {
+    return System.currentTimeMillis() - startedAt;
   }
 }
