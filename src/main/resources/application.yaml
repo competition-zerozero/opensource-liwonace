@@ -21,6 +21,8 @@ server:
   port: ${SERVER_PORT:8080}
 
 app:
+  cli:
+    enabled: ${APP_CLI_ENABLED:false}
   dataset-root: ${DATASET_ROOT:}
   ingest:
     documents:
