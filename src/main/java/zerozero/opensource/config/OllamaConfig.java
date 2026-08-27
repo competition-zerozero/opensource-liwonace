@@ -6,13 +6,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
 
 @Configuration
-@EnableConfigurationProperties({OllamaProperties.class, DocumentIngestionProperties.class, GraphIngestionProperties.class})
+@EnableConfigurationProperties({
+  OllamaProperties.class,
+  DocumentIngestionProperties.class,
+  GraphIngestionProperties.class
+})
 public class OllamaConfig {
 
-    @Bean
-    RestClient ollamaRestClient(OllamaProperties properties) {
-        return RestClient.builder()
-                .baseUrl(properties.baseUrl())
-                .build();
-    }
+  @Bean
+  RestClient ollamaRestClient(OllamaProperties properties) {
+    return RestClient.builder().baseUrl(properties.baseUrl()).build();
+  }
 }

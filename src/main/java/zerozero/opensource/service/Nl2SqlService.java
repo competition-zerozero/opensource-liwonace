@@ -4,53 +4,52 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-
 import zerozero.opensource.dto.SqlQueryResult;
 
 @Service
 public class Nl2SqlService {
 
-    private static final Pattern SQL_BLOCK = Pattern.compile("```sql\\s*(.*?)\\s*```", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+  private static final Pattern SQL_BLOCK =
+      Pattern.compile("```sql\\s*(.*?)\\s*```", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 
-    private final JdbcTemplate jdbcTemplate;
-    private final DatabaseSchemaService schemaService;
-    private final OllamaChatService chatService;
-    private final SqlSafetyValidator sqlSafetyValidator;
+  private final JdbcTemplate jdbcTemplate;
+  private final DatabaseSchemaService schemaService;
+  private final OllamaChatService chatService;
+  private final SqlSafetyValidator sqlSafetyValidator;
 
-    public Nl2SqlService(
-            JdbcTemplate jdbcTemplate,
-            DatabaseSchemaService schemaService,
-            OllamaChatService chatService,
-            SqlSafetyValidator sqlSafetyValidator
-    ) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.schemaService = schemaService;
-        this.chatService = chatService;
-        this.sqlSafetyValidator = sqlSafetyValidator;
-    }
+  public Nl2SqlService(
+      JdbcTemplate jdbcTemplate,
+      DatabaseSchemaService schemaService,
+      OllamaChatService chatService,
+      SqlSafetyValidator sqlSafetyValidator) {
+    this.jdbcTemplate = jdbcTemplate;
+    this.schemaService = schemaService;
+    this.chatService = chatService;
+    this.sqlSafetyValidator = sqlSafetyValidator;
+  }
 
-    public SqlQueryResult ask(String question) {
-        String generated = chatService.chat(systemPrompt(), userPrompt(question, schemaService.loadPublicSchema()));
-        String sql = sqlSafetyValidator.validateAndLimit(extractSql(generated));
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
-        return new SqlQueryResult(sql, rows);
-    }
+  public SqlQueryResult ask(String question) {
+    String generated =
+        chatService.chat(systemPrompt(), userPrompt(question, schemaService.loadPublicSchema()));
+    String sql = sqlSafetyValidator.validateAndLimit(extractSql(generated));
+    List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+    return new SqlQueryResult(sql, rows);
+  }
 
-    private String systemPrompt() {
-        return """
+  private String systemPrompt() {
+    return """
                 너는 Company-X PostgreSQL 데이터베이스를 조회하는 NL2SQL 변환기다.
                 사용자의 한국어 질문을 PostgreSQL SELECT SQL 하나로 변환한다.
                 반드시 SQL만 출력한다. 설명, 마크다운, 주석은 출력하지 않는다.
                 INSERT, UPDATE, DELETE, DROP, ALTER, CREATE 같은 변경 쿼리는 절대 만들지 않는다.
                 스키마에 존재하는 테이블과 컬럼만 사용한다.
                 """;
-    }
+  }
 
-    private String userPrompt(String question, String schema) {
-        return """
+  private String userPrompt(String question, String schema) {
+    return """
                 [스키마]
                 %s
 
@@ -74,18 +73,19 @@ public class Nl2SqlService {
 
                 [질문]
                 %s
-                """.formatted(schema, question);
-    }
+                """
+        .formatted(schema, question);
+  }
 
-    private String extractSql(String generated) {
-        Matcher matcher = SQL_BLOCK.matcher(generated);
-        if (matcher.find()) {
-            return matcher.group(1);
-        }
-        int selectIndex = generated.toLowerCase().indexOf("select");
-        if (selectIndex >= 0) {
-            return generated.substring(selectIndex);
-        }
-        return generated;
+  private String extractSql(String generated) {
+    Matcher matcher = SQL_BLOCK.matcher(generated);
+    if (matcher.find()) {
+      return matcher.group(1);
     }
+    int selectIndex = generated.toLowerCase().indexOf("select");
+    if (selectIndex >= 0) {
+      return generated.substring(selectIndex);
+    }
+    return generated;
+  }
 }
