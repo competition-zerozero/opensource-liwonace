@@ -49,7 +49,7 @@ public class GraphSearchService {
                             JOIN graph_edges e ON e.source_id = w.id OR e.target_id = w.id
                             JOIN graph_nodes n ON n.id = CASE WHEN e.source_id = w.id THEN e.target_id ELSE e.source_id END
                             WHERE w.level < ?
-                              AND (? IS NULL OR e.relation = ?)
+                              AND (CAST(? AS text) IS NULL OR e.relation = CAST(? AS text))
                         )
                         SELECT DISTINCT id, type, name, properties::text AS properties
                         FROM walk
@@ -84,7 +84,7 @@ public class GraphSearchService {
                         FROM graph_edges
                         WHERE source_id = ANY (?::text[])
                           AND target_id = ANY (?::text[])
-                          AND (? IS NULL OR relation = ?)
+                          AND (CAST(? AS text) IS NULL OR relation = CAST(? AS text))
                         LIMIT 120
                         """,
             (rs, rowNum) ->
