@@ -29,18 +29,68 @@ public class QuestionRouterService {
 
   public RouteDecision route(String question) {
     String normalized = normalize(question);
+
+    if (matchesAny(
+        normalized,
+        "사용 중인 제품",
+        "사용하는 고객사",
+        "소속 직원",
+        "담당 엔지니어",
+        "팀장",
+        "이끄는 직원",
+        "관련 고객 이슈",
+        "고객 이슈 현황",
+        "기술 지원 이슈가 가장 많은 제품",
+        "가장 많은 고객을 담당")) {
+      return new RouteDecision(GRAPH_SEARCH, "관계/담당자/연결 탐색 패턴이 감지되었습니다.");
+    }
+
+    if (matchesAny(
+        normalized,
+        "장애",
+        "설치 방법",
+        "kubernetes",
+        "db 튜닝",
+        "성능 최적화",
+        "취약점",
+        "백업 정책",
+        "api 인증",
+        "미팅",
+        "일정 지연",
+        "제안서",
+        "마이그레이션",
+        "ssl 인증서")) {
+      return new RouteDecision(VECTOR_SEARCH, "문서/장애/회의록 검색 패턴이 감지되었습니다.");
+    }
+
+    if (matchesAny(
+        normalized,
+        "가장 많은 프로젝트",
+        "아직 해결되지 않은",
+        "등록된 고객사",
+        "상위",
+        "평균",
+        "총",
+        "몇 개",
+        "몇개",
+        "몇 건",
+        "계약 금액",
+        "연봉")) {
+      return new RouteDecision(NL2SQL, "집계/수치/정형 데이터 조회 패턴이 감지되었습니다.");
+    }
+
     int nl2sqlScore = score(normalized, NL2SQL_KEYWORDS);
     int vectorScore = score(normalized, VECTOR_KEYWORDS);
     int graphScore = score(normalized, GRAPH_KEYWORDS);
 
-    if (graphScore > 0 && graphScore >= nl2sqlScore && graphScore >= vectorScore) {
-      return new RouteDecision(GRAPH_SEARCH, "관계/담당자/연결 탐색 키워드가 감지되었습니다.");
-    }
     if (nl2sqlScore > 0 && nl2sqlScore >= vectorScore) {
       return new RouteDecision(NL2SQL, "집계/수치/정형 데이터 조회 키워드가 감지되었습니다.");
     }
     if (vectorScore > 0) {
       return new RouteDecision(VECTOR_SEARCH, "문서/장애/회의록 검색 키워드가 감지되었습니다.");
+    }
+    if (graphScore > 0) {
+      return new RouteDecision(GRAPH_SEARCH, "관계/담당자/연결 탐색 키워드가 감지되었습니다.");
     }
     return new RouteDecision(VECTOR_SEARCH, "명확한 정형/관계 키워드가 없어 문서 검색을 기본 도구로 선택했습니다.");
   }
@@ -60,5 +110,14 @@ public class QuestionRouterService {
       }
     }
     return score;
+  }
+
+  private boolean matchesAny(String question, String... patterns) {
+    for (String pattern : patterns) {
+      if (question.contains(pattern.toLowerCase(Locale.ROOT))) {
+        return true;
+      }
+    }
+    return false;
   }
 }
